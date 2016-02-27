@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "name": "Metacritic Reviews",
+  "description": "Blah",
+  "source_url": false,
+  "guid": "0d5399db92c87726730504d004c76a75",
+  "tag_fg_color": "#ffffff",
+  "tag_bg_color": "#5bc0de",
+  "exported_at": "2016-02-27T17:34:17Z",
+  "agents": [
+    {
+      "type": "Agents::RssAgent",
+      "name": "Metacritic",
+      "disabled": false,
+      "guid": "414c44a5bccd5f9b54e3304e1a888372",
+      "options": {
+        "expected_update_period_in_days": "5",
+        "clean": "true",
+        "url": "http://www.metacritic.com/rss/movies"
+      },
+      "schedule": "every_10m",
+      "keep_events_for": 86400
+    },
+    {
+      "type": "Agents::WebsiteAgent",
+      "name": "Metacritic scraper",
+      "disabled": false,
+      "guid": "5cc920ddef01af5671a4dd9187dcc8c0",
+      "options": {
+        "expected_update_period_in_days": "2",
+        "url_from_event": "{{url | strip}}",
+        "type": "html",
+        "mode": "merge",
+        "extract": {
+          "score": {
+            "css": ".metascore_w span",
+            "value": ".//node()"
+          },
+          "title": {
+            "css": ".product_title span",
+            "value": "normalize-space(.//text())"
+          }
+        }
+      },
+      "schedule": "never",
+      "keep_events_for": 0,
+      "propagate_immediately": true
+    },
+    {
+      "type": "Agents::TriggerAgent",
+      "name": "Filter metacritic",
+      "disabled": false,
+      "guid": "5d9820d739d5b0803de266fb48c67203",
+      "options": {
+        "expected_receive_period_in_days": "2",
+        "keep_event": "true",
+        "rules": [
+          {
+            "type": "field>=value",
+            "value": "60",
+            "path": "score"
+          }
+        ],
+        "message": "Looks like your pattern matched in '{{value}}'!",
+        "score": "{{score}}",
+        "title": "{{title}}",
+        "description": "{{description}}"
+      },
+      "keep_events_for": 0,
+      "propagate_immediately": true
+    },
+    {
+      "type": "Agents::SlackAgent",
+      "name": "Metacritic slack",
+      "disabled": false,
+      "guid": "b46fbe952c47dd83b53f202557a48691",
+      "options": {
+        "webhook_url": "<SLACK WEBHOOK URL>",
+        "channel": "#movies",
+        "username": "Metacritic",
+        "message": "Check this movie out!. Score: {{score}}\n{{url}}",
+        "unfurl_links": true,
+        "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Metacritic.svg/500px-Metacritic.svg.png"
+      },
+      "propagate_immediately": true
+    }
+  ],
+  "links": [
+    {
+      "source": 0,
+      "receiver": 1
+    },
+    {
+      "source": 1,
+      "receiver": 2
+    },
+    {
+      "source": 2,
+      "receiver": 3
+    }
+  ],
+  "control_links": [
+
+  ]
+}
