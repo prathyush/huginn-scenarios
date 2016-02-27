@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "name": "Bookmyshow Now Showing",
+  "description": "No description provided",
+  "source_url": false,
+  "guid": "ef9eb34a831f80804d3e6c6208671257",
+  "tag_fg_color": "#ffffff",
+  "tag_bg_color": "#5bc0de",
+  "exported_at": "2016-02-27T17:27:02Z",
+  "agents": [
+    {
+      "type": "Agents::TriggerAgent",
+      "name": "Bookmyshow language filter",
+      "disabled": false,
+      "guid": "149dccdadaa60da376e114e5915e7333",
+      "options": {
+        "expected_receive_period_in_days": "2",
+        "keep_event": "true",
+        "rules": [
+          {
+            "type": "regex",
+            "value": "English",
+            "path": "language"
+          }
+        ],
+        "message": "Looks like your pattern matched in '{{value}}'!"
+      },
+      "keep_events_for": 0,
+      "propagate_immediately": false
+    },
+    {
+      "type": "Agents::TriggerAgent",
+      "name": "Bookmyshow filter metacritic",
+      "disabled": false,
+      "guid": "1ad5a0d1bae33930f5dd22bf7cbf0b73",
+      "options": {
+        "expected_receive_period_in_days": "2",
+        "keep_event": "true",
+        "rules": [
+          {
+            "type": "field>=value",
+            "value": "50",
+            "path": "score"
+          }
+        ],
+        "message": "Looks like your pattern matched in '{{value}}'!",
+        "score": "{{score}}",
+        "title": "{{title}}"
+      },
+      "keep_events_for": 0,
+      "propagate_immediately": true
+    },
+    {
+      "type": "Agents::WebsiteAgent",
+      "name": "Bookmyshow metacritic scraper",
+      "disabled": false,
+      "guid": "315345cfac23efaff58c8b67194d541d",
+      "options": {
+        "expected_update_period_in_days": "2",
+        "url_from_event": "http://www.metacritic.com/movie/{{name| downcase | replace:' ', '-' | replace:',',''}}",
+        "type": "html",
+        "mode": "merge",
+        "extract": {
+          "score": {
+            "css": ".metascore_w span",
+            "value": ".//node()"
+          },
+          "title": {
+            "css": ".product_title span",
+            "value": "normalize-space(.//text())"
+          }
+        }
+      },
+      "schedule": "never",
+      "keep_events_for": 0,
+      "propagate_immediately": true
+    },
+    {
+      "type": "Agents::SlackAgent",
+      "name": "Bookmyshow slack",
+      "disabled": false,
+      "guid": "ac349f7b668e0e2442fd7162328ed135",
+      "options": {
+        "webhook_url": "<SLACK WEBHOOK URL>",
+        "channel": "#movies",
+        "username": "BookMyShow",
+        "message": "There is a new movie in town!",
+        "icon": "https://lh6.ggpht.com/7DyCd4vhU-gz6iXhqk8aOiKQEo_Vt8fWRZRuU_jDYFmPosvcASchS3i_n9nDOiOAYQ=w300",
+        "attachments": [
+          {
+            "title": "{{title}}",
+            "title_link": "https://in.bookmyshow.com/bengaluru/movies/{{title | downcase | replace:' ','-'|replace:',','-'|replace:':',''}}-{{variant|downcase}}/{{id}}",
+            "text": "Metacritic score: {{score}}"
+          }
+        ]
+      },
+      "propagate_immediately": true
+    },
+    {
+      "type": "Agents::WebsiteAgent",
+      "name": "Bookmyshow Now Showing",
+      "disabled": false,
+      "guid": "b5c0cefe2b8cb7fabaaa7758b52d1eb3",
+      "options": {
+        "expected_update_period_in_days": "2",
+        "url": "https://in.bookmyshow.com/bengaluru/movies",
+        "type": "text",
+        "mode": "on_change",
+        "extract": {
+          "name": {
+            "regexp": "{\"event\":\"productClick\",\"ecommerce\":{\"currencyCode\":\"INR\",\"click\":{\"actionField\":{\"list\":\"Filter Impression:category\\\\\\/now showing\"},\"products\":\\[{\"name\":\"(.*?)\",\"id\":\"(.*?)\",\"category\":\"(.*?)\",\"variant\":\"(.*?)\",\"position\":(.*?),\"dimension13\":\"(.*?)\"}\\]}}}",
+            "index": 1
+          },
+          "language": {
+            "regexp": "{\"event\":\"productClick\",\"ecommerce\":{\"currencyCode\":\"INR\",\"click\":{\"actionField\":{\"list\":\"Filter Impression:category\\\\\\/now showing\"},\"products\":\\[{\"name\":\"(.*?)\",\"id\":\"(.*?)\",\"category\":\"(.*?)\",\"variant\":\"(.*?)\",\"position\":(.*?),\"dimension13\":\"(.*?)\"}\\]}}}",
+            "index": 6
+          },
+          "id": {
+            "regexp": "{\"event\":\"productClick\",\"ecommerce\":{\"currencyCode\":\"INR\",\"click\":{\"actionField\":{\"list\":\"Filter Impression:category\\\\\\/now showing\"},\"products\":\\[{\"name\":\"(.*?)\",\"id\":\"(.*?)\",\"category\":\"(.*?)\",\"variant\":\"(.*?)\",\"position\":(.*?),\"dimension13\":\"(.*?)\"}\\]}}}",
+            "index": 2
+          },
+          "variant": {
+            "regexp": "{\"event\":\"productClick\",\"ecommerce\":{\"currencyCode\":\"INR\",\"click\":{\"actionField\":{\"list\":\"Filter Impression:category\\\\\\/now showing\"},\"products\":\\[{\"name\":\"(.*?)\",\"id\":\"(.*?)\",\"category\":\"(.*?)\",\"variant\":\"(.*?)\",\"position\":(.*?),\"dimension13\":\"(.*?)\"}\\]}}}",
+            "index": 4
+          }
+        }
+      },
+      "schedule": "every_12h",
+      "keep_events_for": 0,
+      "propagate_immediately": true
+    }
+  ],
+  "links": [
+    {
+      "source": 0,
+      "receiver": 2
+    },
+    {
+      "source": 1,
+      "receiver": 3
+    },
+    {
+      "source": 2,
+      "receiver": 1
+    },
+    {
+      "source": 4,
+      "receiver": 0
+    }
+  ],
+  "control_links": [
+
+  ]
+}
